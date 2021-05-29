@@ -30,6 +30,7 @@ libcxx: libcxx-$(VERSION).src.tar.xz
 
 $(TOPDIR)/include/libcxx: libcxx
 	$(Q) $(DIRLINK) $(CURDIR)/libcxx/include $(TOPDIR)/include/libcxx
+	$(Q) cp $(TOPDIR)/atomic.fix $(TOPDIR)/include/libcxx/atomic
 
 dirlinks:: $(TOPDIR)/include/libcxx
 

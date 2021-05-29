@@ -90,11 +90,11 @@ Defconfigs
       SD card slot   Raspberry Pi Pico
        DAT2          (NC)
        DAT3/CS ----- GP17 (SPI0 CSn) (Pin 22)
-       CMD /DI ----- GP19 (SPI0 TX)  (Pin 25)
+       CMD /DI ----- GP19 (SPI0 TX - MOSI)  (Pin 25)
        VDD     ----- 3V3 OUT         (Pin 36)
        CLK/SCK ----- GP18 (SPI0 SCK) (Pin 24)
        VSS     ----- GND             (Pin 3 or 38 or ...)
-       DAT0/DO ----- GP16 (SPI0 RX)  (Pin 21)
+       DAT0/DO ----- GP16 (SPI0 RX - MISO)  (Pin 21)
        DAT1          (NC)
     * Card hot swapping is not supported.
 
