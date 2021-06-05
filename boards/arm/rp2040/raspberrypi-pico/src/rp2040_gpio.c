@@ -44,12 +44,19 @@
 /* Output pins. GPIO25 is onboard LED any other outputs could be used.
  */
 
-#define GPIO_OUT1     25
+#define GPIO_OUT1    25
+#define GPIO_OUT2    2
+#define GPIO_OUT3    3
+#define GPIO_OUT4    4
+#define GPIO_OUT5    5
 
 /* Input pins.
  */
 
-#define GPIO_IN1      6
+#define GPIO_IN1    6
+#define GPIO_IN2    7
+#define GPIO_IN3    8
+#define GPIO_IN4    9
 
 /* Interrupt pins.
  */
@@ -109,7 +116,11 @@ static const struct gpio_operations_s gpout_ops =
 
 static const uint32_t g_gpiooutputs[BOARD_NGPIOOUT] =
 {
-  GPIO_OUT1
+  GPIO_OUT1,
+  GPIO_OUT2,
+  GPIO_OUT3,
+  GPIO_OUT4,
+  GPIO_OUT5
 };
 
 static struct rp2040gpio_dev_s g_gpout[BOARD_NGPIOOUT];
@@ -128,7 +139,10 @@ static const struct gpio_operations_s gpin_ops =
 
 static const uint32_t g_gpioinputs[BOARD_NGPIOIN] =
 {
-  GPIO_IN1
+  GPIO_IN1,
+  GPIO_IN2,
+  GPIO_IN3,
+  GPIO_IN4
 };
 
 static struct rp2040gpio_dev_s g_gpin[BOARD_NGPIOIN];
@@ -334,7 +348,6 @@ int rp2040_dev_gpio_init(void)
       gpio_pin_register(&g_gpout[i].gpio, g_gpiooutputs[i]);
 
       /* Configure the pins that will be used as output */
-
       rp2040_gpio_init(g_gpiooutputs[i]);
       rp2040_gpio_setdir(g_gpiooutputs[i], true);
       rp2040_gpio_put(g_gpiooutputs[i], false);
