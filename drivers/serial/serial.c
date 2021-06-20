@@ -1204,6 +1204,19 @@ static ssize_t uart_write(FAR struct file *filep, FAR const char *buffer,
 
               nwritten -= buflen;
             }
+#ifdef CONFIG_CDCACM_NON_BLOCKING
+          else if (ret == -EAGAIN)
+            {
+              /* in this case we have a full buffer and non blocking call
+               * selected, so "clear" the buffer and continue 😏
+               */
+              dev->xmit.head = 0;
+              dev->xmit.tail = 0;
+              
+              /* simple ignore the error */
+              nwritten -= buflen;
+            }
+#endif
           else
             {
               /* No data was transferred. Return the negated errno value.

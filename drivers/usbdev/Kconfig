@@ -388,6 +388,15 @@ config CDCACM_OFLOWCONTROL
 	---help---
 		Enable CDC/ACM CTS flow control
 
+config CDCACM_NON_BLOCKING
+	bool "CDC/ACM non blocking put calls"
+	default n
+	depends on CDCACM_CONSOLE
+	---help---
+		Choose not to block write calls if buffer is full. If this is
+		selected true it also changes the behavior of NSH access, it is no longer
+		needed to hit 3 ENTER inputs to access the NSH.
+
 menuconfig CDCACM_COMPOSITE
 	bool "CDC/ACM composite support"
 	default n
