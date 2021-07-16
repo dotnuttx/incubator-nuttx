@@ -76,6 +76,7 @@
 #define GPIOC_REGISTER   _GPIOC(4)
 #define GPIOC_UNREGISTER _GPIOC(5)
 #define GPIOC_SETPINTYPE _GPIOC(6)
+#define GPIOC_SETDIR     _GPIOC(7)
 
 /****************************************************************************
  * Public Types
@@ -96,6 +97,7 @@ enum gpio_pintype_e
   GPIO_INTERRUPT_RISING_PIN,
   GPIO_INTERRUPT_FALLING_PIN,
   GPIO_INTERRUPT_BOTH_PIN,
+  GPIO_LIB_PIN,
   GPIO_NPINTYPES
 };
 
@@ -129,6 +131,23 @@ struct gpio_operations_s
                             enum gpio_pintype_e pintype);
 };
 
+#ifdef CONFIG_GPIO_LIB
+struct gpio_lib_operations_s
+{
+  /* Interface methods */
+
+  CODE int (*gp_read)(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
+                      FAR bool *value);
+  CODE int (*gp_write)(FAR struct gpio_dev_s *dev, FAR uint8_t pin, bool value);
+  CODE int (*gp_attach)(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
+                        pin_interrupt_t callback);
+  CODE int (*gp_enable)(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
+                        bool enable);
+  CODE int (*gp_setpindir)(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
+                            enum gpio_pintype_e pintype);
+};
+#endif
+
 /* Signal information */
 
 struct gpio_signal_s
@@ -157,6 +176,10 @@ struct gpio_dev_s
    */
 
   FAR const struct gpio_operations_s *gp_ops;
+
+#ifdef CONFIG_GPIO_LIB
+  FAR const struct gpio_lib_operations_s *gp_lib_ops;
+#endif
 
   /* Device specific, lower-half information may follow. */
 };
