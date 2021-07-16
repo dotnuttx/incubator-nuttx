@@ -28,6 +28,7 @@
 #include <syslog.h>
 #include <assert.h>
 #include <debug.h>
+#include <errno.h>
 
 #include <nuttx/irq.h>
 #include <arch/irq.h>
@@ -133,6 +134,68 @@ static const uint32_t g_gpiointinputs[BOARD_NGPIOINT] =
 };
 
 static struct esp32c3gpint_dev_s g_gpint[BOARD_NGPIOINT];
+#endif
+
+#ifdef CONFIG_GPIO_LIB
+// TODO: banks
+static struct esp32c3gpio_dev_s gpio_generic_bank0;
+
+static int gp_lib_read(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
+                       FAR bool *value)
+{
+  FAR struct esp32c3gpio_dev_s *esp32c3gpio =
+    (FAR struct esp32c3gpio_dev_s *)dev;
+
+  DEBUGASSERT(esp32c3gpio != NULL && value != NULL);
+  gpioinfo("Reading %d...\n", (int)pin);
+
+  *value = esp32c3_gpioread(pin);
+  return OK;
+}
+
+static int gp_lib_write(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
+                        bool value)
+{
+  FAR struct esp32c3gpio_dev_s *esp32c3gpio =
+    (FAR struct esp32c3gpio_dev_s *)dev;
+
+  DEBUGASSERT(esp32c3gpio != NULL);
+  gpioinfo("Writing %d to %d\n", (int)value, (int)pin);
+
+  esp32c3_gpiowrite(pin, value);
+  return OK;
+}
+
+static int gp_lib_setpindir(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
+                            FAR enum gpio_pintype_e pintype)
+{
+  FAR struct esp32c3gpio_dev_s *esp32c3gpio =
+    (FAR struct esp32c3gpio_dev_s *)dev;
+
+  DEBUGASSERT(esp32c3gpio != NULL);
+  gpioinfo("Seting dir %d to %d\n", (int)pintype, (int)pin);
+
+  if (pintype == GPIO_OUTPUT_PIN)
+  {
+    esp32c3_configgpio(pin, OUTPUT_FUNCTION_1);
+  }
+  else if (pintype == GPIO_INPUT_PIN_PULLDOWN)
+  {
+    esp32c3_configgpio(pin, INPUT_FUNCTION_1 | PULLDOWN);
+  } else {
+    return -EINVAL;
+  }
+
+  return OK;
+}
+
+static const struct gpio_lib_operations_s gpio_lib_ops =
+{
+  .gp_read      = gp_lib_read,
+  .gp_write     = gp_lib_write,
+  .gp_setpindir = gp_lib_setpindir,
+};
+
 #endif
 
 /****************************************************************************
@@ -321,6 +384,14 @@ int esp32c3_gpio_init(void)
 
       pincount++;
     }
+#endif
+
+#ifdef CONFIG_GPIO_LIB
+  gpio_generic_bank0.gpio.gp_pintype = GPIO_LIB_PIN;
+  gpio_generic_bank0.gpio.gp_lib_ops = &gpio_lib_ops;
+  gpio_generic_bank0.id = 0;
+
+  gpio_pin_register(&gpio_generic_bank0.gpio, 0);
 #endif
 
   return OK;

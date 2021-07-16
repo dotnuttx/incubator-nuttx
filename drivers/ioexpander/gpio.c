@@ -52,7 +52,7 @@ static ssize_t gpio_write(FAR struct file *filep, FAR const char *buffer,
                           size_t buflen);
 static off_t   gpio_seek(FAR struct file *filep, off_t offset, int whence);
 static int     gpio_ioctl(FAR struct file *filep, int cmd,
-                          unsigned long arg);
+                          unsigned long arg, unsigned long gpio);
 
 /****************************************************************************
  * Private Data
@@ -301,7 +301,7 @@ static off_t gpio_seek(FAR struct file *filep, off_t offset, int whence)
  *
  ****************************************************************************/
 
-static int gpio_ioctl(FAR struct file *filep, int cmd, unsigned long arg)
+static int gpio_ioctl(FAR struct file *filep, int cmd, unsigned long arg, unsigned long gpio)
 {
   FAR struct inode *inode;
   FAR struct gpio_dev_s *dev;
@@ -315,6 +315,8 @@ static int gpio_ioctl(FAR struct file *filep, int cmd, unsigned long arg)
   inode = filep->f_inode;
   DEBUGASSERT(inode->i_private != NULL);
   dev = inode->i_private;
+
+  gpioinfo("Argument gpio PIN:: %ld\n", gpio);
 
   switch (cmd)
     {
@@ -330,6 +332,12 @@ static int gpio_ioctl(FAR struct file *filep, int cmd, unsigned long arg)
             DEBUGASSERT(arg == 0ul || arg == 1ul);
             ret = dev->gp_ops->go_write(dev, (bool)arg);
           }
+#ifdef CONFIG_GPIO_LIB
+        else if (dev->gp_pintype == GPIO_LIB_PIN)
+          {
+            ret = dev->gp_lib_ops->gp_write(dev, (uint8_t)gpio, (bool)arg);
+          }
+#endif
         else
           {
             ret = -EACCES;
@@ -344,11 +352,24 @@ static int gpio_ioctl(FAR struct file *filep, int cmd, unsigned long arg)
 
       case GPIOC_READ:
         {
-          FAR bool *ptr = (FAR bool *)((uintptr_t)arg);
-          DEBUGASSERT(ptr != NULL);
+#ifdef CONFIG_GPIO_LIB
+          if (dev->gp_pintype == GPIO_LIB_PIN)
+          {
+            FAR bool *ptr = (FAR bool *)((uintptr_t)arg);
+            DEBUGASSERT(ptr != NULL);
 
-          ret = dev->gp_ops->go_read(dev, ptr);
-          DEBUGASSERT(ret < 0 || *ptr == 0 || *ptr == 1);
+            ret = dev->gp_lib_ops->gp_read(dev, (uint8_t)gpio, ptr);
+            DEBUGASSERT(ret < 0 || *ptr == 0 || *ptr == 1);
+          }
+          else
+#endif
+          {
+            FAR bool *ptr = (FAR bool *)((uintptr_t)arg);
+            DEBUGASSERT(ptr != NULL);
+
+            ret = dev->gp_ops->go_read(dev, ptr);
+            DEBUGASSERT(ret < 0 || *ptr == 0 || *ptr == 1);
+          }
         }
         break;
 
@@ -493,6 +514,15 @@ static int gpio_ioctl(FAR struct file *filep, int cmd, unsigned long arg)
         }
         break;
 
+#ifdef CONFIG_GPIO_LIB
+      case GPIOC_SETDIR:
+        {
+          /* assert if it's a GPIO_LIB_PIN */
+          ret = dev->gp_lib_ops->gp_setpindir(dev, (uint8_t)gpio, arg);
+        }
+        break;
+#endif
+
       /* Unrecognized command */
 
       default:
@@ -516,6 +546,7 @@ static int gpio_ioctl(FAR struct file *filep, int cmd, unsigned long arg)
  *   - Input pin types will be registered at /dev/gpinN
  *   - Output pin types will be registered at /dev/gpoutN
  *   - Interrupt pin types will be registered at /dev/gpintN
+ *   - Generic pin types will be registered at /dev/gpioN
  *
  *   Where N is the provided minor number in the range of 0-99.
  *
@@ -547,6 +578,15 @@ int gpio_pin_register(FAR struct gpio_dev_s *dev, int minor)
           DEBUGASSERT(dev->gp_ops->go_read != NULL &&
                      dev->gp_ops->go_write != NULL);
           fmt = "/dev/gpout%u";
+        }
+        break;
+
+      case GPIO_LIB_PIN:
+        {
+          DEBUGASSERT(dev->gp_lib_ops->gp_read != NULL &&
+                      dev->gp_lib_ops->gp_write != NULL &&
+                      dev->gp_lib_ops->gp_setpindir != NULL);
+          fmt = "/dev/gpio%u";
         }
         break;
 

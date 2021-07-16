@@ -303,4 +303,11 @@ config GPIO_LOWER_HALF_INTTYPE
 
 endif
 
+config GPIO_LIB
+	bool "Configure GPIOs on demand"
+	default n
+	depends on DEV_GPIO
+	---help---
+		Enable support configure GPIOs on demmand
+
 endmenu # IO Expander/GPIO Support
