@@ -30,6 +30,7 @@
 #include <arch/irq.h>
 #include <assert.h>
 #include <debug.h>
+#include <errno.h>
 
 #include <nuttx/ioexpander/gpio.h>
 
@@ -124,6 +125,74 @@ static const uint32_t g_gpiooutputs[BOARD_NGPIOOUT] =
 };
 
 static struct rp2040gpio_dev_s g_gpout[BOARD_NGPIOOUT];
+#endif
+
+#if CONFIG_GPIO_LIB
+static struct rp2040gpio_dev_s gpio_generic_bank0;
+
+static int gp_lib_read(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
+                       FAR bool *value)
+{
+  FAR struct rp2040gpio_dev_s *rp2040gpio =
+    (FAR struct esp32c3gpio_dev_s *)dev;
+
+  DEBUGASSERT(rp2040gpio != NULL && value != NULL);
+  gpioinfo("Reading %d...\n", (int)pin);
+
+  *value = rp2040_gpio_get(pin);
+
+  return OK;
+}
+
+static int gp_lib_write(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
+                        bool value)
+{
+  FAR struct rp2040gpio_dev_s *rp2040gpio =
+    (FAR struct esp32c3gpio_dev_s *)dev;
+
+  DEBUGASSERT(rp2040gpio != NULL);
+  gpioinfo("Writing %d to %d\n", (int)value, (int)pin);
+
+  rp2040_gpio_put(pin, value);
+
+  return OK;
+}
+
+static int gp_lib_setpindir(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
+                            FAR enum gpio_pintype_e pintype)
+{
+  FAR struct rp2040gpio_dev_s *rp2040gpio =
+    (FAR struct esp32c3gpio_dev_s *)dev;
+
+  DEBUGASSERT(rp2040gpio != NULL);
+  gpioinfo("Seting dir %d to %d\n", (int)pintype, (int)pin);
+
+  rp2040_gpio_init(pin);
+
+  if (pintype == GPIO_OUTPUT_PIN)
+  {
+    /* to output and initially as low */
+    rp2040_gpio_setdir(pin, true);
+    rp2040_gpio_put(pin, false);
+  }
+  else if (pintype == GPIO_INPUT_PIN_PULLDOWN)
+  {
+    rp2040_gpio_setdir(pin, false);
+    rp2040_gpio_set_pulls(pin, false, true);
+  } else {
+    return -EINVAL;
+  }
+
+  return OK;
+}
+
+static const struct gpio_lib_operations_s gpio_lib_ops =
+{
+  .gp_read      = gp_lib_read,
+  .gp_write     = gp_lib_write,
+  .gp_setpindir = gp_lib_setpindir,
+};
+
 #endif
 
 #if BOARD_NGPIOIN > 0
