@@ -581,6 +581,7 @@ int gpio_pin_register(FAR struct gpio_dev_s *dev, int minor)
         }
         break;
 
+#ifdef CONFIG_GPIO_LIB
       case GPIO_LIB_PIN:
         {
           DEBUGASSERT(dev->gp_lib_ops->gp_read != NULL &&
@@ -589,6 +590,7 @@ int gpio_pin_register(FAR struct gpio_dev_s *dev, int minor)
           fmt = "/dev/gpio%u";
         }
         break;
+#endif
 
       default:
         {
