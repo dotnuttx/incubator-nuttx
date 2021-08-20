@@ -47,9 +47,9 @@ MEMORY
 
   /* 2048Kb FLASH */
 
-  kflash (rx) : ORIGIN = 0x8040000, LENGTH = 128K
-  uflash (rx) : ORIGIN = 0x8060000, LENGTH = 128K
-  xflash (rx) : ORIGIN = 0x8080000, LENGTH = 530K
+  kflash (rx) : ORIGIN = 0x08040000, LENGTH = 128K
+  uflash (rx) : ORIGIN = 0x08060000, LENGTH = 128K
+  xflash (rx) : ORIGIN = 0x08080000, LENGTH = 530K
 
   /* 288Kb SRAM123 */
 
