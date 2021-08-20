@@ -256,6 +256,13 @@ config STM32H7_FLASH_CONFIG_I
 	bool
 	default n
 
+config STM32H7_DFU
+	bool "DFU bootloader"
+	default n
+	---help---
+		Configure and position code for use with the STMicro DFU bootloader.  Do
+		not select this option if you will load code using JTAG/SWM.
+
 choice
 	prompt "Override Flash Size Designator"
 	depends on ARCH_CHIP_STM32H7

@@ -31,7 +31,11 @@ ENTRYPT = $(patsubst "%",%,$(CONFIG_USER_ENTRYPOINT))
 ifeq ($(CONFIG_CYGWIN_WINTOOL),y)
   # Windows-native toolchains
   USER_LIBPATHS = ${shell for path in $(USERLIBS); do dir=`dirname $(TOPDIR)$(DELIM)$$path`;echo "-L\"`cygpath -w $$dir`\"";done}
-  USER_LDSCRIPT = -T "${shell cygpath -w $(BOARD_DIR)$(DELIM)scripts$(DELIM)memory.ld}"
+  ifeq ($(CONFIG_STM32H7_DFU),y)
+  	USER_LDSCRIPT = -T "${shell cygpath -w $(BOARD_DIR)$(DELIM)scripts$(DELIM)memory.dfu.ld}"
+  else
+	USER_LDSCRIPT = -T "${shell cygpath -w $(BOARD_DIR)$(DELIM)scripts$(DELIM)memory.ld}"
+  endif
   USER_LDSCRIPT += -T "${shell cygpath -w $(BOARD_DIR)$(DELIM)scripts$(DELIM)user-space.ld}"
   USER_HEXFILE += "${shell cygpath -w $(TOPDIR)$(DELIM)nuttx_user.hex}"
   USER_SRECFILE += "${shell cygpath -w $(TOPDIR)$(DELIM)nuttx_user.srec}"
@@ -39,7 +43,11 @@ ifeq ($(CONFIG_CYGWIN_WINTOOL),y)
 else
   # Linux/Cygwin-native toolchain
   USER_LIBPATHS = $(addprefix -L$(TOPDIR)$(DELIM),$(dir $(USERLIBS)))
-  USER_LDSCRIPT = -T$(BOARD_DIR)$(DELIM)scripts$(DELIM)memory.ld
+  ifeq ($(CONFIG_STM32H7_DFU),y)
+  	USER_LDSCRIPT = -T$(BOARD_DIR)$(DELIM)scripts$(DELIM)memory.dfu.ld
+  else
+  	USER_LDSCRIPT = -T$(BOARD_DIR)$(DELIM)scripts$(DELIM)memory.ld
+  endif
   USER_LDSCRIPT += -T$(BOARD_DIR)$(DELIM)scripts$(DELIM)user-space.ld
   USER_HEXFILE += "$(TOPDIR)$(DELIM)nuttx_user.hex"
   USER_SRECFILE += "$(TOPDIR)$(DELIM)nuttx_user.srec"
