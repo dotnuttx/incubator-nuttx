@@ -42,6 +42,7 @@ extern "C"
 
 extern int  backtrace(FAR void **buffer, int size);
 extern void dump_stack(void);
+extern void early_dump_stack(void);
 #else
 # define dump_stack()
 #endif
