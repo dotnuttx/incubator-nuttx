@@ -469,6 +469,14 @@ int rp2040_dev_gpio_init(void)
     }
 #endif
 
+#ifdef CONFIG_GPIO_LIB
+  gpio_generic_bank0.gpio.gp_pintype = GPIO_LIB_PIN;
+  gpio_generic_bank0.gpio.gp_lib_ops = &gpio_lib_ops;
+  gpio_generic_bank0.id = 0;
+
+  gpio_pin_register(&gpio_generic_bank0.gpio, 0);
+#endif
+
   return OK;
 }
 #endif /* CONFIG_DEV_GPIO && !CONFIG_GPIO_LOWER_HALF */
