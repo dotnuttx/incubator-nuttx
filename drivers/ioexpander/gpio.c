@@ -52,7 +52,7 @@ static ssize_t gpio_write(FAR struct file *filep, FAR const char *buffer,
                           size_t buflen);
 static off_t   gpio_seek(FAR struct file *filep, off_t offset, int whence);
 static int     gpio_ioctl(FAR struct file *filep, int cmd,
-                          unsigned long arg, unsigned long gpio);
+                          unsigned long arg);
 
 /****************************************************************************
  * Private Data
@@ -301,7 +301,7 @@ static off_t gpio_seek(FAR struct file *filep, off_t offset, int whence)
  *
  ****************************************************************************/
 
-static int gpio_ioctl(FAR struct file *filep, int cmd, unsigned long arg, unsigned long gpio)
+static int gpio_ioctl(FAR struct file *filep, int cmd, unsigned long arg)
 {
   FAR struct inode *inode;
   FAR struct gpio_dev_s *dev;
@@ -315,8 +315,6 @@ static int gpio_ioctl(FAR struct file *filep, int cmd, unsigned long arg, unsign
   inode = filep->f_inode;
   DEBUGASSERT(inode->i_private != NULL);
   dev = inode->i_private;
-
-  gpioinfo("Argument gpio PIN:: %ld\n", gpio);
 
   switch (cmd)
     {
@@ -335,7 +333,10 @@ static int gpio_ioctl(FAR struct file *filep, int cmd, unsigned long arg, unsign
 #ifdef CONFIG_GPIO_LIB
         else if (dev->gp_pintype == GPIO_LIB_PIN)
           {
-            ret = dev->gp_lib_ops->gp_write(dev, (uint8_t)gpio, (bool)arg);
+            FAR struct gpio_lib_args *gpio_lib =
+              (FAR struct gpio_lib_args *) arg;
+            ret = dev->gp_lib_ops->gp_write(dev, gpio_lib->pin,
+              (bool)gpio_lib->arg);
           }
 #endif
         else
@@ -355,10 +356,13 @@ static int gpio_ioctl(FAR struct file *filep, int cmd, unsigned long arg, unsign
 #ifdef CONFIG_GPIO_LIB
           if (dev->gp_pintype == GPIO_LIB_PIN)
           {
-            FAR bool *ptr = (FAR bool *)((uintptr_t)arg);
+            FAR struct gpio_lib_args *gpio_lib =
+              (FAR struct gpio_lib_args *) arg;
+
+            FAR bool *ptr = (FAR bool *)((uintptr_t)gpio_lib->arg);
             DEBUGASSERT(ptr != NULL);
 
-            ret = dev->gp_lib_ops->gp_read(dev, (uint8_t)gpio, ptr);
+            ret = dev->gp_lib_ops->gp_read(dev, gpio_lib->pin, ptr);
             DEBUGASSERT(ret < 0 || *ptr == 0 || *ptr == 1);
           }
           else
@@ -517,8 +521,11 @@ static int gpio_ioctl(FAR struct file *filep, int cmd, unsigned long arg, unsign
 #ifdef CONFIG_GPIO_LIB
       case GPIOC_SETDIR:
         {
+          FAR struct gpio_lib_args *gpio_lib =
+              (FAR struct gpio_lib_args *) arg;
+
           /* assert if it's a GPIO_LIB_PIN */
-          ret = dev->gp_lib_ops->gp_setpindir(dev, (uint8_t)gpio, arg);
+          ret = dev->gp_lib_ops->gp_setpindir(dev, gpio_lib->pin, gpio_lib->arg);
         }
         break;
 #endif

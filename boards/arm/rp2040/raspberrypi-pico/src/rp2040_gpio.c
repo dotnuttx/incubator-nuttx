@@ -127,7 +127,7 @@ static const uint32_t g_gpiooutputs[BOARD_NGPIOOUT] =
 static struct rp2040gpio_dev_s g_gpout[BOARD_NGPIOOUT];
 #endif
 
-#if CONFIG_GPIO_LIB
+#ifdef CONFIG_GPIO_LIB
 static struct rp2040gpio_dev_s gpio_generic_bank0;
 
 static int gp_lib_read(FAR struct gpio_dev_s *dev, FAR uint8_t pin,

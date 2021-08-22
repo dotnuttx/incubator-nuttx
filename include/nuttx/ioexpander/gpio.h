@@ -146,6 +146,13 @@ struct gpio_lib_operations_s
   CODE int (*gp_setpindir)(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
                             enum gpio_pintype_e pintype);
 };
+
+struct gpio_lib_args
+{
+  unsigned long arg;
+  uint8_t pin;
+};
+
 #endif
 
 /* Signal information */
