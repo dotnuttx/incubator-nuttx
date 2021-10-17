@@ -134,6 +134,69 @@ static int gpout_write(FAR struct gpio_dev_s *dev, bool value)
 }
 #endif
 
+#ifdef CONFIG_GPIO_LIB
+// TODO: banks
+static struct k210gpio_dev_s gpio_generic_bank0;
+
+static int gp_lib_read(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
+                       FAR bool *value)
+{
+  FAR struct k210gpio_dev_s *k210gpio = (FAR struct k210gpio_dev_s *)dev;
+
+  DEBUGASSERT(k210gpio != NULL && value != NULL);
+  gpioinfo("Reading %d...\n", (int)pin);
+
+  *value = (int) k210_gpiohs_get_value(pin);
+  return OK;
+}
+
+static int gp_lib_write(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
+                        bool value)
+{
+  FAR struct k210gpio_dev_s *k210gpio = (FAR struct k210gpio_dev_s *)dev;
+
+  DEBUGASSERT(k210gpio != NULL);
+  gpioinfo("Writing %d to %d\n", (int)value, (int)pin);
+
+  k210_gpiohs_set_value(pin, !value);
+  return OK;
+}
+
+static int gp_lib_setpindir(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
+                            FAR enum gpio_pintype_e pintype)
+{
+  FAR struct k210gpio_dev_s *k210gpio = (FAR struct k210gpio_dev_s *)dev;
+  uint32_t flags = K210_IOFLAG_GPIOHS;
+
+  DEBUGASSERT(k210gpio != NULL);
+  gpioinfo("Setting dir %d to %d\n", (int)pintype, (int)pin);
+
+  if (pintype == GPIO_OUTPUT_PIN)
+  {
+    k210_fpioa_config(pin, (K210_IO_FUNC_GPIOHS0 + pin) | K210_IOFLAG_GPIOHS);
+    k210_gpiohs_set_direction(pin, true);
+  }
+  else if (pintype == GPIO_INPUT_PIN_PULLDOWN)
+  {
+    flags = flags | K210_IO_PULL_DOWN;
+    k210_fpioa_config(pin, (K210_IO_FUNC_GPIOHS0 + pin) | flags);
+    k210_gpiohs_set_direction(pin, false);
+  } else {
+    return -EINVAL;
+  }
+
+  return OK;
+}
+
+static const struct gpio_lib_operations_s gpio_lib_ops =
+{
+  .gp_read      = gp_lib_read,
+  .gp_write     = gp_lib_write,
+  .gp_setpindir = gp_lib_setpindir,
+};
+
+#endif
+
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -166,6 +229,14 @@ int k210_gpio_init(void)
 
       pincount++;
     }
+#endif
+
+#ifdef CONFIG_GPIO_LIB
+  gpio_generic_bank0.gpio.gp_pintype = GPIO_LIB_PIN;
+  gpio_generic_bank0.gpio.gp_lib_ops = &gpio_lib_ops;
+  gpio_generic_bank0.id = 0;
+
+  gpio_pin_register(&gpio_generic_bank0.gpio, 0);
 #endif
 
   return OK;
