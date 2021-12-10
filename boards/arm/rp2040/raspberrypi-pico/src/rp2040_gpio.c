@@ -134,7 +134,7 @@ static int gp_lib_read(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
                        FAR bool *value)
 {
   FAR struct rp2040gpio_dev_s *rp2040gpio =
-    (FAR struct esp32c3gpio_dev_s *)dev;
+    (FAR struct rp2040gpio_dev_s *)dev;
 
   DEBUGASSERT(rp2040gpio != NULL && value != NULL);
   gpioinfo("Reading %d...\n", (int)pin);
@@ -148,7 +148,7 @@ static int gp_lib_write(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
                         bool value)
 {
   FAR struct rp2040gpio_dev_s *rp2040gpio =
-    (FAR struct esp32c3gpio_dev_s *)dev;
+    (FAR struct rp2040gpio_dev_s *)dev;
 
   DEBUGASSERT(rp2040gpio != NULL);
   gpioinfo("Writing %d to %d\n", (int)value, (int)pin);
@@ -162,7 +162,7 @@ static int gp_lib_setpindir(FAR struct gpio_dev_s *dev, FAR uint8_t pin,
                             FAR enum gpio_pintype_e pintype)
 {
   FAR struct rp2040gpio_dev_s *rp2040gpio =
-    (FAR struct esp32c3gpio_dev_s *)dev;
+    (FAR struct rp2040gpio_dev_s *)dev;
 
   DEBUGASSERT(rp2040gpio != NULL);
   gpioinfo("Seting dir %d to %d\n", (int)pintype, (int)pin);
