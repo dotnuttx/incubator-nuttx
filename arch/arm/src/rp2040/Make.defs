@@ -62,9 +62,6 @@ CHIP_CSRCS += rp2040_clock.c
 CHIP_CSRCS += rp2040_xosc.c
 CHIP_CSRCS += rp2040_pll.c
 
-# TODO: workaround for atomic instructions LDREX and STREX
-CHIP_CSRCS += ../../risc-v/src/esp32c3/esp32c3_std_atomic.c
-
 ifeq ($(CONFIG_SMP),y)
 CHIP_CSRCS += rp2040_cpuindex.c
 CHIP_CSRCS += rp2040_cpustart.c
