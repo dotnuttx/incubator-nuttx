@@ -5,4 +5,11 @@
 
 if ARCH_BOARD_PORTENTA
 
+config BOARD_PORTENTA_DFU
+    bool "Use the DFU bootloader to flash NuttX on Arduino Portenta H7"
+    default n
+    ---help---
+        Configure a position code for use with the STMicro DFU bootloader. Do
+		not select this option if you will load code using JTAG/SWM.
+
 endif # ARCH_BOARD_PORTENTA
